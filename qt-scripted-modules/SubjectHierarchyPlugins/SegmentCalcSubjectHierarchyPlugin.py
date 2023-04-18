@@ -1,6 +1,10 @@
-import vtk, qt, ctk, slicer
+import vtk, qt, ctk, slicer, os, sys
 import logging
 from AbstractScriptedSubjectHierarchyPlugin import *
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+IMPORTDIR = BASE_DIR+'\\SegmentCalcDir\\'
+sys.path.append(IMPORTDIR)
 
 class SegmentCalcSubjectHierarchyPlugin(AbstractScriptedSubjectHierarchyPlugin):
   """ Scripted subject hierarchy plugin for the Segment Editor module.
@@ -17,9 +21,17 @@ class SegmentCalcSubjectHierarchyPlugin(AbstractScriptedSubjectHierarchyPlugin):
   def __init__(self, scriptedPlugin):
     scriptedPlugin.name = 'SegmentCalc'
     AbstractScriptedSubjectHierarchyPlugin.__init__(self, scriptedPlugin)
+    path = BASE_DIR +'\\SegmentCalcDir\\model'
 
-    self.segmentCalcAction = qt.QAction("SegmentCalc this...", scriptedPlugin)
-    self.segmentCalcAction.connect("triggered()", self.onSegment)
+    files = os.listdir(path)
+    pthlist=list()
+    self.segmentCalcActions=list()
+    for f in files:
+      if f.endswith('.pth'):
+        contextstr = "segCMR by " + f
+        segmentCalcAction = qt.QAction(contextstr, scriptedPlugin)
+        segmentCalcAction.connect("triggered()", lambda: self.onSegment(f))
+        self.segmentCalcActions.append(segmentCalcAction)
 
   def canAddNodeToSubjectHierarchy(self, node, parentItemID):
     # This plugin cannot own any items (it's not a role but a function plugin),
@@ -65,34 +77,26 @@ class SegmentCalcSubjectHierarchyPlugin(AbstractScriptedSubjectHierarchyPlugin):
     return qt.QIcon()
 
   def itemContextMenuActions(self):
-    return [self.segmentCalcAction]
+    return self.segmentCalcActions
 
-  def onSegment(self):
+  def onSegment(self, modelname):
     pluginHandlerSingleton = slicer.qSlicerSubjectHierarchyPluginHandler.instance()
     currentItemID = pluginHandlerSingleton.currentItem()
 
     shNode = slicer.mrmlScene.GetSubjectHierarchyNode()
     volumeNode = shNode.GetItemDataNode(currentItemID)
 
-    import os, sys
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    IMPORTDIR = BASE_DIR+'\\SegmentCalcDir\\'
-    sys.path.append(IMPORTDIR)
-
     inputfile = BASE_DIR+'\\SegmentCalcDir\\tmpdata\\in.nrrd'
     outputfile = BASE_DIR+'\\SegmentCalcDir\\tmpdata\\out.nrrd'
 
     slicer.util.saveNode(volumeNode, inputfile)
-
     from SegmentCalcDir.test import runMain
-    runMain(inputfile, outputfile)
-    from SampleData import SampleDataSource, SampleDataLogic
+    runMain(inputfile, outputfile, modelname)
 
     predict = slicer.util.loadSegmentation(outputfile)
     os.remove(inputfile)
     os.remove(outputfile)
-
-
+    
     # Switch to Segment Editor module
 
     # Create new segmentation only if there is no segmentation node, or the current segmentation is not empty
@@ -126,7 +130,8 @@ class SegmentCalcSubjectHierarchyPlugin(AbstractScriptedSubjectHierarchyPlugin):
       if not currentItemID:
         logging.error("Invalid current item")
         return
-      self.segmentCalcAction.visible = True
+      for segAction in self.segmentCalcActions:
+        segAction.visible = True
 
   def tooltip(self, itemID):
     # As this plugin cannot own any items, it doesn't provide tooltip either

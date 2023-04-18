@@ -30,7 +30,6 @@ and Ontario Consortium for Adaptive Interventions in Radiation Oncology (OCAIRO)
     # Register subject hierarchy plugins
     import SubjectHierarchyPlugins
     scriptedPlugin = slicer.qSlicerSubjectHierarchyScriptedPlugin(None)
-    #scriptedPlugin.setPythonSource(SubjectHierarchyPlugins.SegmentEditorSubjectHierarchyPlugin.filePath)
     scriptedPlugin.setPythonSource(SubjectHierarchyPlugins.SegmentCalcSubjectHierarchyPlugin.filePath)
 
 #

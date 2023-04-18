@@ -11,7 +11,6 @@ from networks.vit_seg_modeling import VisionTransformer as ViT_seg
 from networks.vit_seg_modeling import CONFIGS as CONFIGS_ViT_seg
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-MODEL = BASE_DIR+'\\SegmentCalcDir\\model\\model.pth'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--num_classes', type=int,
@@ -43,7 +42,7 @@ def inference(_args, model, input_file, outputFile):
     return "Testing Finished!"
 
 
-def runMain(inputFile, outputFile):
+def runMain(inputFile, outputFile, modelname):
 
     if not args.deterministic:
         cudnn.benchmark = True
@@ -66,7 +65,8 @@ def runMain(inputFile, outputFile):
         config_vit.patches.grid = (int(args.img_size/args.vit_patches_size), int(args.img_size/args.vit_patches_size))
     net = ViT_seg(config_vit, img_size=args.img_size, num_classes=config_vit.n_classes).cpu()
 
-    snapshot = MODEL
+    snapshot = BASE_DIR+'\\SegmentCalcDir\\model\\' + modelname
+
 
     net.load_state_dict(torch.load(snapshot, map_location='cpu'))
 
