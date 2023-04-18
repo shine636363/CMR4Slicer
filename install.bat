@@ -35,7 +35,7 @@ SET RequireTxt=%~dp0requirements.txt
 SET SlicerPython=%SlicerPath%\bin\PythonSlicer.exe
 SET ModelPath=%targetsourcepath%\SegmentCalcDir\model\
 XCOPY "%Source%" "%targetsourcepath%" /E /Y /Q
-COPY model\model.pth "%ModelPath%"  /Y
+XCOPY "model\" "%ModelPath%"  /E /Y /Q
 SET PARAM=-m pip install -r "%RequireTxt%" -i https://pypi.tuna.tsinghua.edu.cn/simple
 "%SlicerPython%" %PARAM%
 
