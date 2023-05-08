@@ -160,7 +160,9 @@ def test_single_volume(net, classes, inputfile, outputFile, patch_size=[256, 256
 
     # Set new_image Other Space_Info
     prd_itk.SetOrigin(image.GetOrigin())
-    prd_itk.SetSpacing(image.GetSpacing())
+    prd_itk.SetSpacing((image.GetSpacing()[0],
+                        image.GetSpacing()[1],
+                        image.GetSpacing()[2]*0.5))
 
     sitk.WriteImage(prd_itk, outputFile)
 
